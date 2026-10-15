@@ -2,6 +2,7 @@
 # stress-gen.sh
 # Generates periodic stresses on the server's IO, CPU, filesystem, and memory
 
+systemd-notify READY=1
 while true
 do
 	# stress IO
