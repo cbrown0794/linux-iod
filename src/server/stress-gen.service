@@ -1,0 +1,12 @@
+[Unit]
+Description=A stress generator for Linux infrastructure
+
+[Service]
+Type=notify
+NotifyAccess=all
+ExecStart=/home/sutwilterdink/linux-iod/src/server/stress-gen.sh
+WatchdogSec=45s
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
