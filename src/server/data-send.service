@@ -1,0 +1,10 @@
+[Unit]
+Description=A python script that opens a socket on port 6767 and sends pipe data when it receives any data
+
+[Service]
+Type=simple
+ExecStart=/home/sutwilterdink/linux-iod/src/server/py/bin/python3 /home/sutwilterdink/linux-iod/src/server/data-send.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
