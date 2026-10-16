@@ -1,7 +1,6 @@
 [Unit]
 Description=A python agent that collects usage statistics
 
-
 [Service]
 Type=simple
 Group=agent
