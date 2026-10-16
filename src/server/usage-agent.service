@@ -1,0 +1,12 @@
+[Unit]
+Description=A python agent that collects usage statistics
+
+
+[Service]
+Type=simple
+Group=agent
+ExecStart=/home/sutwilterdink/linux-iod/src/server/py/bin/python3 /home/sutwilterdink/linux-iod/src/server/agent.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
