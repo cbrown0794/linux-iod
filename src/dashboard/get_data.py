@@ -20,7 +20,7 @@ def main():
 
 def connect_to(addr, port)->dict:
 	try:
-		with socket.create_connection((addr, port), timeout=10) as conn:
+		with socket.create_connection((addr, port), timeout=2) as conn:
 			print(f"Connection started to {addr}:{port}")
 			conn.sendall(("r").encode())
 			data = ""
