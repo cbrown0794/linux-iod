@@ -1,0 +1,14 @@
+[Unit]
+Description=A streamlit dashboard for Linux infrastructure observing
+
+[Service]
+Type=simple
+User=sutwilterdink
+
+ExecStart=/home/sutwilterdink/linux-iod/src/dashboard/py/bin/streamlit run st_app.py --server.port=8501
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

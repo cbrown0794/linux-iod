@@ -21,7 +21,7 @@ SERVERS = {
 	"cb": ServerInfo("cbrown", "10.0.1.2", 6767),
 	"sw": ServerInfo("sw-server", "10.0.2.2", 6767),
 	"ah": ServerInfo("N/A", "10.0.3.2", 6767),
-	"rm": ServerInfo("N/A", "10.0.4.2", 6767),
+	"rm": ServerInfo("rmoses", "10.0.4.2", 6767),
 }
 
 METRICS = ["cpu", "vm", "disk", "io_r", "io_w"]
