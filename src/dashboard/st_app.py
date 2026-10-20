@@ -40,7 +40,7 @@ DEFAULT_THRESHOLDS = {
 
 st.header("Linux Infrastructure Observabililty Dashboard", width="content")
 
-# ---- notifications: threshold settings + alert history in the sidebar ----
+# ---- notifications: threshold settings in the sidebar ----
 st.sidebar.header("Alert Thresholds")
 thresholds = {}
 for metric in METRICS:
@@ -55,12 +55,19 @@ if "alert_log" not in st.session_state:
 if "active_alerts" not in st.session_state:
 	st.session_state["active_alerts"] = set()
 
-st.sidebar.header("Alert History")
-if st.session_state["alert_log"]:
-	for entry in reversed(st.session_state["alert_log"][-10:]):
-		st.sidebar.write(entry)
-else:
-	st.sidebar.write("No alerts yet.")
+# alert history gets its own fragment so it refreshes every 5 seconds
+# instead of only when the main page reruns
+@st.fragment(run_every="5s")
+def alert_history():
+	with st.sidebar:
+		st.header("Alert History")
+		if st.session_state["alert_log"]:
+			for entry in reversed(st.session_state["alert_log"][-10:]):
+				st.write(entry)
+		else:
+			st.write("No alerts yet.")
+
+alert_history()
 
 # select options
 col1, col2 = st.columns(2)
