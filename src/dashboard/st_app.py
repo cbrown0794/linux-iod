@@ -4,6 +4,7 @@ from get_data import connect_to
 import streamlit as st
 import pandas as pd
 import time
+from datetime import datetime
 
 # class to hold server information
 class ServerInfo:
@@ -26,8 +27,47 @@ SERVERS = {
 
 METRICS = ["cpu", "vm", "disk", "io_r", "io_w"]
 
+# default alert thresholds, one per metric
+# cpu / vm / disk are percents; io_r / io_w are bytes per sample (~per second)
+DEFAULT_THRESHOLDS = {
+	"cpu": 80.0,
+	"vm": 85.0,
+	"disk": 90.0,
+	"io_r": 50000000.0,
+	"io_w": 50000000.0,
+}
+
 
 st.header("Linux Infrastructure Observabililty Dashboard", width="content")
+
+# ---- notifications: threshold settings in the sidebar ----
+st.sidebar.header("Alert Thresholds")
+thresholds = {}
+for metric in METRICS:
+	thresholds[metric] = st.sidebar.number_input(
+		f"{metric} max",
+		value=DEFAULT_THRESHOLDS[metric],
+		key=f"thresh_{metric}",
+	)
+
+if "alert_log" not in st.session_state:
+	st.session_state["alert_log"] = []
+if "active_alerts" not in st.session_state:
+	st.session_state["active_alerts"] = set()
+
+# alert history gets its own fragment so it refreshes every 5 seconds
+# instead of only when the main page reruns
+@st.fragment(run_every="5s")
+def alert_history():
+	with st.sidebar:
+		st.header("Alert History")
+		if st.session_state["alert_log"]:
+			for entry in reversed(st.session_state["alert_log"][-10:]):
+				st.write(entry)
+		else:
+			st.write("No alerts yet.")
+
+alert_history()
 
 # select options
 col1, col2 = st.columns(2)
@@ -51,11 +91,38 @@ if "data" not in st.session_state:
 		server.addr: pd.DataFrame({"time": pd.Series(dtype=float), **{metric: pd.Series(dtype=float) for metric in METRICS}}) for server in SERVERS.values()
 	}
 
+# compare the newest reading against the thresholds.
+# a breach fires a toast + a history entry ONCE when it starts,
+# then clears itself when the value drops back under the threshold.
+def check_thresholds(server, stats):
+	for metric in METRICS:
+		value = stats.get(metric)
+		if value is None:
+			continue
+		key = (server.name, metric)
+		if value >= thresholds[metric]:
+			if key not in st.session_state["active_alerts"]:
+				st.session_state["active_alerts"].add(key)
+				msg = f"{server.name}: {metric} at {value:.1f} (threshold {thresholds[metric]:.1f})"
+				st.toast(msg, icon="⚠️")
+				st.session_state["alert_log"].append(
+					f"{datetime.now().strftime('%H:%M:%S')} — {msg}"
+				)
+		else:
+			st.session_state["active_alerts"].discard(key)
+
 # fetch data using connect_to() every 5 seconds
 @st.fragment(run_every="5s")
 def update_data(server):
-	try: st.session_state["data"][server.addr] = pd.concat([st.session_state["data"][server.addr], pd.DataFrame([connect_to(server.addr, server.port)])])
+	try:
+		stats = connect_to(server.addr, server.port)
+		st.session_state["data"][server.addr] = pd.concat([st.session_state["data"][server.addr], pd.DataFrame([stats])])
+		check_thresholds(server, stats)
 	except RuntimeError as e: st.error(e)
+	# persistent red banner in this server's tab while any metric is over
+	for (name, metric) in sorted(st.session_state["active_alerts"]):
+		if name == server.name:
+			st.error(f"⚠️ {metric} is over its alert threshold")
 	df = st.session_state["data"][server.addr]
 	df = df[df["time"] > time.time() - history_len]
 	df = df.assign(time=pd.to_datetime(df["time"], unit="s"))
