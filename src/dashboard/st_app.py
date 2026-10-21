@@ -21,7 +21,7 @@ class ServerInfo:
 SERVERS = {
 	"cb": ServerInfo("cbrown", "10.0.1.2", 6767),
 	"sw": ServerInfo("sw-server", "10.0.2.2", 6767),
-	"ah": ServerInfo("ahays", "10.0.3.2", 6767),
+	"ah": ServerInfo("ahays-server", "10.0.3.2", 6767),
 	"rm": ServerInfo("rmoses", "10.0.4.2", 6767),
 }
 
